@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Asset Voucher Template</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .certificate {
+            background-color: #fff;
+            border: 10px solid #d3d3d3;
+            border-image: url('https://dummyimage.com/10x10/000/fff') 10 round;
+            padding: 50px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            width: 800px;
+            max-width: 90%;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 36px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 24px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 12px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f9f9f9;
+            color: #333;
+        }
+
+        .seal {
+            text-align: right;
+            margin-top: 30px;
+        }
+
+        .seal img {
+            width: 100px;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+<div class="certificate">
+    <h1>Asset Voucher</h1>
+    <h2>Certification of Asset Ownership</h2>
+    <table>
+        <thead>
+        <tr>
+            <th>资产名称</th>
+            <th>持有人</th>
+            <th>凭证日期</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td th:text="${assetId}"></td>
+            <td th:text="${username}"></td>
+            <td th:text="${voucherDate}"></td>
+        </tr>
+        </tbody>
+    </table>
+    <div class="seal">
+        <img src="https://pic.nximg.cn/file/20230105/34423925_161146206100_2.jpg" alt="Seal">
+    </div>
+</div>
+</body>
+</html>
