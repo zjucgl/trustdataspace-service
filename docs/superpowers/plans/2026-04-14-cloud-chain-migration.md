@@ -61,7 +61,7 @@
 **Files:**
 - Modify: `pom.xml:144-166`
 
-- [ ] **Step 1: 替换 minio 依赖为 aliyun-sdk-oss，移除 web3j**
+- [x] **Step 1: 替换 minio 依赖为 aliyun-sdk-oss，移除 web3j**
 
 将 pom.xml 中的 minio 和 web3j 依赖块替换：
 
@@ -78,12 +78,12 @@
 </dependency>
 ```
 
-- [ ] **Step 2: 验证依赖解析**
+- [x] **Step 2: 验证依赖解析**
 
 Run: `cd /usr/github/trustdataspace-service && mvn dependency:resolve -q 2>&1 | tail -5`
 Expected: BUILD SUCCESS（忽略编译错误，此时只验证依赖能下载）
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add pom.xml
@@ -97,7 +97,7 @@ git commit -m "build: 替换 minio/web3j 依赖为 aliyun-sdk-oss"
 **Files:**
 - Create: `src/main/resources/application-prod.yml`
 
-- [ ] **Step 1: 创建生产环境配置文件**
+- [x] **Step 1: 创建生产环境配置文件**
 
 ```yaml
 server:
@@ -189,7 +189,7 @@ huayichain:
   api-key: ${HUAYICHAIN_API_KEY:}
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/main/resources/application-prod.yml
@@ -208,7 +208,7 @@ git commit -m "config: 新增生产环境配置 application-prod.yml"
 - Modify: `src/main/java/sz/lab/controller/system/UtilsController.java`
 - Modify: `src/main/java/sz/lab/service/system/asset/impl/IAssetServiceImpl.java`
 
-- [ ] **Step 1: 创建 OssConfig.java**
+- [x] **Step 1: 创建 OssConfig.java**
 
 ```java
 package sz.lab.config.cfg;
@@ -236,7 +236,7 @@ public class OssConfig {
 }
 ```
 
-- [ ] **Step 2: 创建 OssUtils.java**
+- [x] **Step 2: 创建 OssUtils.java**
 
 ```java
 package sz.lab.utils;
@@ -356,14 +356,14 @@ public class OssUtils {
 }
 ```
 
-- [ ] **Step 3: 删除 MinioConfig.java 和 MinioUtils.java**
+- [x] **Step 3: 删除 MinioConfig.java 和 MinioUtils.java**
 
 ```bash
 git rm src/main/java/sz/lab/config/cfg/MinioConfig.java
 git rm src/main/java/sz/lab/utils/MinioUtils.java
 ```
 
-- [ ] **Step 4: 修改 UtilsController.java**
+- [x] **Step 4: 修改 UtilsController.java**
 
 将 `sz/lab/controller/system/UtilsController.java` 中的 MinioUtils 引用替换为 OssUtils：
 
@@ -387,7 +387,7 @@ git rm src/main/java/sz/lab/utils/MinioUtils.java
 // 新: ossUtils.uploadWithoutTime(...)
 ```
 
-- [ ] **Step 5: 修改 IAssetServiceImpl.java**
+- [x] **Step 5: 修改 IAssetServiceImpl.java**
 
 在 `sz/lab/service/system/asset/impl/IAssetServiceImpl.java` 中：
 
@@ -405,7 +405,7 @@ git rm src/main/java/sz/lab/utils/MinioUtils.java
 // 新: String url = ossUtils.createUrl(fileName);
 ```
 
-- [ ] **Step 6: 在 application-dev.yml 中添加 aliyun.oss 配置**
+- [x] **Step 6: 在 application-dev.yml 中添加 aliyun.oss 配置**
 
 在 `application-dev.yml` 末尾的 `minio:` 块替换为：
 
@@ -420,7 +420,7 @@ aliyun:
 
 注意：开发环境中如果仍然使用 MinIO，阿里云 OSS SDK 可以兼容 S3 协议的 MinIO 端点。
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add -A src/main/java/sz/lab/config/cfg/OssConfig.java \
@@ -443,7 +443,7 @@ git commit -m "feat: 阿里云 OSS 替换 MinIO 存储层"
 - Create: `src/main/resources/mapper/system/ChainRecordMapper.xml`
 - Create: `src/main/resources/db/chain_record.sql`
 
-- [ ] **Step 1: 创建华艺链响应 DTO**
+- [x] **Step 1: 创建华艺链响应 DTO**
 
 ```java
 package sz.lab.chain.model;
@@ -457,7 +457,7 @@ public class ChainResponse {
 }
 ```
 
-- [ ] **Step 2: 创建华艺链 REST 客户端**
+- [x] **Step 2: 创建华艺链 REST 客户端**
 
 ```java
 package sz.lab.chain.client;
@@ -522,7 +522,7 @@ public class HuayiChainClient {
 }
 ```
 
-- [ ] **Step 3: 创建 ChainRecordEntity**
+- [x] **Step 3: 创建 ChainRecordEntity**
 
 ```java
 package sz.lab.entity.system;
@@ -553,7 +553,7 @@ public class ChainRecordEntity {
 }
 ```
 
-- [ ] **Step 4: 创建 ChainRecordMapper**
+- [x] **Step 4: 创建 ChainRecordMapper**
 
 ```java
 package sz.lab.mapper.system.chain;
@@ -567,7 +567,7 @@ public interface ChainRecordMapper extends BaseMapper<ChainRecordEntity> {
 }
 ```
 
-- [ ] **Step 5: 创建 ChainRecordMapper.xml**
+- [x] **Step 5: 创建 ChainRecordMapper.xml**
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -577,7 +577,7 @@ public interface ChainRecordMapper extends BaseMapper<ChainRecordEntity> {
 </mapper>
 ```
 
-- [ ] **Step 6: 创建建表 SQL**
+- [x] **Step 6: 创建建表 SQL**
 
 ```sql
 -- src/main/resources/db/chain_record.sql
@@ -599,7 +599,7 @@ CREATE TABLE IF NOT EXISTS chain_record (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='链上记录表';
 ```
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/main/java/sz/lab/chain/ \
@@ -622,7 +622,7 @@ git commit -m "feat: 新增华艺链客户端、ChainRecord 数据模型和建�
 - Delete: `src/main/java/sz/lab/service/web3j/Web3Service.java`
 - Delete: `src/main/java/sz/lab/service/web3j/impl/Web3ServiceImpl.java`
 
-- [ ] **Step 1: 删除所有 Web3j 专用文件**
+- [x] **Step 1: 删除所有 Web3j 专用文件**
 
 ```bash
 git rm src/main/java/sz/lab/utils/contract/Web3jClient.java
@@ -633,7 +633,7 @@ git rm src/main/java/sz/lab/service/web3j/Web3Service.java
 git rm src/main/java/sz/lab/service/web3j/impl/Web3ServiceImpl.java
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git commit -m "refactor: 删除 Web3j 合约和服务文件"
@@ -646,7 +646,7 @@ git commit -m "refactor: 删除 Web3j 合约和服务文件"
 **Files:**
 - Modify: `src/main/java/sz/lab/utils/BlockChainUtil.java`
 
-- [ ] **Step 1: 重写为数据哈希工具**
+- [x] **Step 1: 重写为数据哈希工具**
 
 将整个文件替换为：
 
@@ -683,7 +683,7 @@ public class BlockChainUtil {
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/main/java/sz/lab/utils/BlockChainUtil.java
@@ -698,7 +698,7 @@ git commit -m "refactor: BlockChainUtil 简化为 SHA256 哈希工具"
 - Modify: `src/main/java/sz/lab/service/trace/AssetTraceService.java`
 - Modify: `src/main/java/sz/lab/service/trace/impl/AssetTraceServiceImpl.java`
 
-- [ ] **Step 1: 重写 AssetTraceService 接口**
+- [x] **Step 1: 重写 AssetTraceService 接口**
 
 移除所有 AssetTraceability 类型引用，替换为通用返回类型：
 
@@ -727,7 +727,7 @@ public interface AssetTraceService {
 }
 ```
 
-- [ ] **Step 2: 重写 AssetTraceServiceImpl**
+- [x] **Step 2: 重写 AssetTraceServiceImpl**
 
 将整个文件替换为：
 
@@ -912,7 +912,7 @@ public class AssetTraceServiceImpl implements AssetTraceService {
 }
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/main/java/sz/lab/service/trace/AssetTraceService.java \
@@ -929,7 +929,7 @@ git commit -m "feat: AssetTraceService 改为华艺链 REST API 实现"
 - Modify: `src/main/java/sz/lab/service/system/ethnode/ISystemNodeinfoService.java`
 - Modify: `src/main/java/sz/lab/service/system/ethnode/impl/SystemNodeinfoServiceImpl.java`
 
-- [ ] **Step 1: 简化 EthController**
+- [x] **Step 1: 简化 EthController**
 
 移除挖矿、余额、矿工列表端点，仅保留 checkBalance 和 getNodeList（数据库查询）：
 
@@ -967,7 +967,7 @@ public class EthController extends BaseController {
 }
 ```
 
-- [ ] **Step 2: 简化 ISystemNodeinfoService**
+- [x] **Step 2: 简化 ISystemNodeinfoService**
 
 移除 getBlockNumber 和 getMinerList 方法：
 
@@ -983,7 +983,7 @@ public interface ISystemNodeinfoService extends IService<SystemNodeinfo> {
 }
 ```
 
-- [ ] **Step 3: 简化 SystemNodeinfoServiceImpl**
+- [x] **Step 3: 简化 SystemNodeinfoServiceImpl**
 
 移除所有 Web3j 调用，仅保留数据库查询：
 
@@ -1021,7 +1021,7 @@ public class SystemNodeinfoServiceImpl extends ServiceImpl<SystemNodeinfoMapper,
 }
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/main/java/sz/lab/controller/system/EthController.java \
@@ -1037,7 +1037,7 @@ git commit -m "refactor: EthController 和 NodeinfoService 移除 Web3j 依赖"
 **Files:**
 - Modify: `src/main/java/sz/lab/service/orga/user/impl/UserServiceImpl.java`
 
-- [ ] **Step 1: 修改 add 方法，移除钱包生成**
+- [x] **Step 1: 修改 add 方法，移除钱包生成**
 
 在 `UserServiceImpl.java` 中：
 
@@ -1110,7 +1110,7 @@ public OperateResultDTO updateprice(Integer userId, String assetId) throws Excep
 
 移除 `blockChainUtil` 字段（如果不再被其他方法使用）。注意保留 `assetTraceService` 字段。
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/main/java/sz/lab/service/orga/user/impl/UserServiceImpl.java
@@ -1124,7 +1124,7 @@ git commit -m "refactor: UserServiceImpl 移除钱包生成和 Web3j 依赖"
 **Files:**
 - Modify: `src/main/java/sz/lab/service/system/recharge/Impl/PaymentServiceImpl.java`
 
-- [ ] **Step 1: 简化为纯数据库充值**
+- [x] **Step 1: 简化为纯数据库充值**
 
 将整个文件替换为：
 
@@ -1208,7 +1208,7 @@ public class PaymentServiceImpl implements PaymentService {
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/main/java/sz/lab/service/system/recharge/Impl/PaymentServiceImpl.java
@@ -1223,11 +1223,11 @@ git commit -m "refactor: PaymentServiceImpl 移除 Web3j，改用华艺链记录
 - Modify: `src/main/java/sz/lab/controller/system/SystemTraceHistoryController.java`
 - Modify: `src/test/java/sz/lab/mvdwebend/MvdWebEndApplicationTests.java`
 
-- [ ] **Step 1: SystemTraceHistoryController 不需要改动**
+- [x] **Step 1: SystemTraceHistoryController 不需要改动**
 
 该 Controller 调用 `assetTraceService.getAssetHistory()`，接口返回类型仍然是 `List`，无需改动。确认即可。
 
-- [ ] **Step 2: 清理测试文件**
+- [x] **Step 2: 清理测试文件**
 
 将 `MvdWebEndApplicationTests.java` 中的 Web3j 相关 import 和注释代码清理：
 
@@ -1246,7 +1246,7 @@ class MvdWebEndApplicationTests {
 }
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/test/java/sz/lab/mvdwebend/MvdWebEndApplicationTests.java
@@ -1260,7 +1260,7 @@ git commit -m "test: 清理测试文件中的 Web3j 引用"
 **Files:**
 - Modify: `src/main/resources/application-dev.yml`
 
-- [ ] **Step 1: 更新开发环境配置**
+- [x] **Step 1: 更新开发环境配置**
 
 在 `application-dev.yml` 中：
 
@@ -1296,7 +1296,7 @@ huayichain:
   api-key:
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/main/resources/application-dev.yml
@@ -1309,18 +1309,18 @@ git commit -m "config: application-dev.yml 替换 minio/geth 为 oss/huayichain 
 
 **Files:** 无新文件
 
-- [ ] **Step 1: Maven 编译**
+- [x] **Step 1: Maven 编译**
 
 Run: `cd /usr/github/trustdataspace-service && mvn clean compile -q 2>&1 | tail -20`
 Expected: BUILD SUCCESS
 
-- [ ] **Step 2: 修复编译错误（如有）**
+- [x] **Step 2: 修复编译错误（如有）**
 
 检查编译输出，逐个修复遗漏的 import 或引用问题。常见问题：
 - `TraceLog` 注解的 AOP 切面可能引用了已删除的类
 - 某些 Entity/DTO 可能有 Web3j 类型的字段
 
-- [ ] **Step 3: 确认无 web3j 或 minio 残留引用**
+- [x] **Step 3: 确认无 web3j 或 minio 残留引用**
 
 Run: `grep -r "import org.web3j\|import io.minio" src/main/java/ 2>/dev/null`
 Expected: 无输出
@@ -1328,7 +1328,7 @@ Expected: 无输出
 Run: `grep -r "import org.web3j\|import io.minio" src/test/java/ 2>/dev/null`
 Expected: 无输出
 
-- [ ] **Step 4: Commit（如有修复）**
+- [x] **Step 4: Commit（如有修复）**
 
 ```bash
 git add -A
@@ -1341,17 +1341,17 @@ git commit -m "fix: 修复编译错误，清理残留引用"
 
 **Files:** 无新文件
 
-- [ ] **Step 1: 完整构建（跳过测试）**
+- [x] **Step 1: 完整构建（跳过测试）**
 
 Run: `cd /usr/github/trustdataspace-service && mvn clean package -DskipTests -q 2>&1 | tail -10`
 Expected: BUILD SUCCESS，生成 JAR 文件
 
-- [ ] **Step 2: 确认 JAR 生成**
+- [x] **Step 2: 确认 JAR 生成**
 
 Run: `ls -lh target/*.jar`
 Expected: 看到 `trusted-data-space-back-end-0.0.1-SNAPSHOT.jar`
 
-- [ ] **Step 3: 查看完整变更统计**
+- [x] **Step 3: 查看完整变更统计**
 
 Run: `git log --oneline` 确认所有提交
 Run: `git diff --stat HEAD~N` 查看变更文件统计（N=提交数量）
