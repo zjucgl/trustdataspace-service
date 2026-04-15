@@ -9,11 +9,6 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
-import org.web3j.protocol.Web3j;
-import org.web3j.protocol.core.DefaultBlockParameterName;
-import org.web3j.protocol.core.methods.response.EthGetBalance;
-import org.web3j.protocol.http.HttpService;
-import org.web3j.utils.Convert;
 import sz.lab.dto.orga.ParticipantOptionDTO;
 import sz.lab.dto.orga.UserDTO;
 import sz.lab.dto.orga.UserOptionDTO;
@@ -36,11 +31,8 @@ import sz.lab.mapper.system.role.RoleMapper;
 import sz.lab.service.orga.user.UserRoleService;
 import sz.lab.service.orga.user.UserService;
 import sz.lab.service.trace.AssetTraceService;
-import sz.lab.utils.BlockChainUtil;
 
 import javax.annotation.Resource;
-import java.io.IOException;
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -74,8 +66,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
     private UserMapper userMapper;
     @Resource
     private IAssetMapper assetMapper;
-    @Resource
-    private BlockChainUtil blockChainUtil;
 
     @Override
     public OperateResultDTO pageList(TableRequestDTO tableRequestDTO,Integer userId,String type) {
@@ -141,9 +131,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
     @Override
     public OperateResultDTO add(UserDTO userDTO) throws Exception {
         UserEntity userEntity = dtoToEntity(userDTO);
-        Object[] wallet = blockChainUtil.generateWallet(userEntity.getLoginPwd());
-        userEntity.setEthAccount((String) wallet[0]);
-        userEntity.setEthCredentials((String) wallet[1]);
         userMapper.insertUser(userEntity);
         //判断是否有角色
         if(userDTO.getRoleIdList()!= null && !userDTO.getRoleIdList().isEmpty()) {
@@ -199,16 +186,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         }
         OperateResultDTO operateResultDTO = assetTraceService.purchaseAsset(assetId, userId);
         int code0 = 0;
-        Object[] result = (Object[]) operateResultDTO.getResult();
-        BigInteger totalcost = (BigInteger) result[3];
-        totalcost = totalcost.divide(BigInteger.valueOf(1000000000L));// 转换为rmb
 
         if (operateResultDTO.isSuccess()) {
-            // 修改消费者余额
             code0 = userMapper.update(null,Wrappers.lambdaUpdate(UserEntity.class)
                     .eq(UserEntity::getUserId, userId)
                     .set(UserEntity::getUserDeposits, userEntity.getUserDeposits()-assetEntity.getAssetPrice())
-                    .set(UserEntity::getUserDepositsExtra, userEntity.getUserDepositsExtra()-totalcost.intValue()));
+                    .set(UserEntity::getUserDepositsExtra, userEntity.getUserDepositsExtra()));
             //修改卖家余额
             UserEntity userEntitySeller = userMapper.selectById(assetEntity.getUserId());
             code0 = userMapper.update(null,Wrappers.lambdaUpdate(UserEntity.class)
