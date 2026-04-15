@@ -9,7 +9,7 @@ spring:
       datasource:
         master:
           driver-class-name: com.mysql.cj.jdbc.Driver
-          url: jdbc:mysql://${DB_HOST}:${DB_PORT:3306}/mvd_end_db?useUnicode=true&characterEncoding=utf-8&serverTimezone=GMT%2B8&useSSL=true
+          url: jdbc:mysql://${DB_HOST}:${DB_PORT:3306}/dataspace_db?useUnicode=true&characterEncoding=utf-8&serverTimezone=GMT%2B8&useSSL=true
           username: ${DB_USERNAME}
           password: ${DB_PASSWORD}
   thymeleaf:
@@ -83,5 +83,9 @@ aliyun:
     bucketName: ${OSS_BUCKET_NAME:trustdataspace}
 
 huayichain:
-  base-url: ${HUAYICHAIN_BASE_URL}
-  api-key: ${HUAYICHAIN_API_KEY:}
+  base-url: ${HUAYICHAIN_BASE_URL:http://121.40.83.239:8101}
+  app-key: ${HUAYICHAIN_APP_KEY:A3B7C9D2E5F8G1H4I6J0}
+  app-secret: ${HUAYICHAIN_APP_SECRET:xYz8Wv2Qr4Tu9Nm3Lp6Ka7Be5Fc1Gd8He0Jf3Kl2}
+  contract-address: ${HUAYICHAIN_CONTRACT_ADDRESS:0x29F5d0bDBaA9b161991B3E07ECa18BD407EA877a}
+  admin-address: ${HUAYICHAIN_ADMIN_ADDRESS:0x610aB218A2e72FcEfc8a03a14d08fB564Ab962Df}
+  admin-key: ${HUAYICHAIN_ADMIN_KEY:nblg@0404}

@@ -89,7 +89,11 @@ aliyun:
     bucketName: data
 
 huayichain:
-  base-url: http://192.168.14.3:8545
-  api-key:
+  base-url: http://121.40.83.239:8101
+  app-key: A3B7C9D2E5F8G1H4I6J0
+  app-secret: xYz8Wv2Qr4Tu9Nm3Lp6Ka7Be5Fc1Gd8He0Jf3Kl2
+  contract-address: 0x29F5d0bDBaA9b161991B3E07ECa18BD407EA877a
+  admin-address: 0x610aB218A2e72FcEfc8a03a14d08fB564Ab962Df
+  admin-key: nblg@0404
 
 
