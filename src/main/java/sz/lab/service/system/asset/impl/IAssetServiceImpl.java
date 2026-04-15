@@ -20,7 +20,7 @@ import sz.lab.mapper.orga.user.UserRoleMapper;
 import sz.lab.mapper.system.asset.IAssetMapper;
 import sz.lab.service.system.asset.AssetService;
 import sz.lab.utils.Base64Utils;
-import sz.lab.utils.MinioUtils;
+import sz.lab.utils.OssUtils;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -40,7 +40,7 @@ public class IAssetServiceImpl extends ServiceImpl<IAssetMapper, IAssetEntity> i
     @Resource
     private UserRoleMapper userRoleMapper;
     @Autowired
-    private MinioUtils minioUtils;
+    private OssUtils ossUtils;
 
     @Override
     public OperateResultDTO updateAssetprice(String assetId ,long newPrice) {
@@ -261,7 +261,7 @@ public class IAssetServiceImpl extends ServiceImpl<IAssetMapper, IAssetEntity> i
                 if(entity.getPath()!=null){
                     String path = entity.getPath();
                     String fileName = path.substring(path.lastIndexOf("/") + 1);
-                    String url = minioUtils.createUrl(fileName);
+                    String url = ossUtils.createUrl(fileName);
 //                    dto.setBaseUrl(url);
                     dto.setBaseUrl(path);
                 }

@@ -10,7 +10,7 @@ import sz.lab.dto.system.OperateResultDTO;
 import sz.lab.service.system.asset.AssetService;
 import sz.lab.service.system.file.IpFileService;
 import sz.lab.utils.Base64Utils;
-import sz.lab.utils.MinioUtils;
+import sz.lab.utils.OssUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -23,11 +23,11 @@ import java.util.List;
 @RequestMapping("/utils")
 @RestController
 public class UtilsController extends BaseController {
-    @Value("${minio.endpoint}")
+    @Value("${aliyun.oss.endpoint}")
     private String address;
     private String bucketName = "data";
     @Resource
-    private MinioUtils minioUtils;
+    private OssUtils ossUtils;
     @Resource
     private IpFileService ipFileService;
     @Resource
@@ -53,7 +53,7 @@ public class UtilsController extends BaseController {
     public OperateResultDTO upload(@RequestParam("file") MultipartFile file,
                               HttpServletRequest request){
 
-        List<String> upload = minioUtils.upload(new MultipartFile[]{file});
+        List<String> upload = ossUtils.upload(new MultipartFile[]{file});
 //        String url = address + "/" + bucketName + "/" + upload.get(0);
         String url = bucketName + "/" + upload.get(0);
 
@@ -66,7 +66,7 @@ public class UtilsController extends BaseController {
     public OperateResultDTO uploadWithoutTime(@RequestParam("file") MultipartFile file,
                                    HttpServletRequest request){
 
-        List<String> upload = minioUtils.uploadWithoutTime(new MultipartFile[]{file});
+        List<String> upload = ossUtils.uploadWithoutTime(new MultipartFile[]{file});
 //        String url = address + "/" + bucketName + "/" + upload.get(0);
         String url = bucketName + "/" + upload.get(0);
 

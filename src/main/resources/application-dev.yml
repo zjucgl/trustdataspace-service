@@ -81,12 +81,15 @@ custom-attribute: # 自定义属性
     token-expire: 240 # token有效时长，60 * 4小时，单位分钟
   lock-time: 30 #账号锁定时间
   pwd-reset-time: 90 #密码过期时间，单位天
-minio:
-  endpoint: http://211.91.61.25:29000 #Minio服务所在地址
-  accessKey: minioadmin #访问的key
-  secretKey: minioadmin #访问的秘钥
-keystore:
-  dir: /data/li/data/keystore
-gethAddress: http://192.168.14.3:8545
+aliyun:
+  oss:
+    endpoint: http://211.91.61.25:29000
+    accessKeyId: minioadmin
+    accessKeySecret: minioadmin
+    bucketName: data
+
+huayichain:
+  base-url: http://192.168.14.3:8545
+  api-key:
 
 
