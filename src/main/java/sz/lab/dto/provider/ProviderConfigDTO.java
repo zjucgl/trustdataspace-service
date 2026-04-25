@@ -15,12 +15,8 @@ public class ProviderConfigDTO {
     private Integer dataplanePublicPort;
     private Integer identityHubPort;
     private Integer stsPort;
-    private String dbHost;
-    private Integer dbPort;
-    private String dbName;
-    private String dbReadonlyUser;
-    private String dbReadonlyPwd;
     private String deployHost;
+    private String enabledDataplaneExtensions;
     private String status;
     private String remark;
     private String deptName;

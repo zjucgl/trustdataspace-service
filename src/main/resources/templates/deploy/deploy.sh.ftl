@@ -19,12 +19,44 @@ mkdir -p $DEPLOY_DIR/{jars,config,credentials}
 # 2. Copy JARs (from shared location or download)
 echo "[2/6] Checking JAR files..."
 JAR_SOURCE="/opt/edc/shared/jars"
+ENABLED_EXTENSIONS="${enabledDataplaneExtensions}"
+REQUIRED_CORE_JARS=("controlplane.jar" "dataplane.jar" "identity-hub.jar" "sts.jar")
 if [ ! -d "$JAR_SOURCE" ]; then
     echo "ERROR: Shared JAR directory not found at $JAR_SOURCE"
-    echo "Please copy EDC v0.10.1 JARs (controlplane.jar, dataplane.jar, identity-hub.jar, sts.jar) to $JAR_SOURCE"
+    echo "Please copy EDC v0.10.1 core JARs to $JAR_SOURCE"
     exit 1
 fi
-cp $JAR_SOURCE/*.jar $DEPLOY_DIR/jars/
+for jar in "${REQUIRED_CORE_JARS[@]}"; do
+    if [ ! -f "$JAR_SOURCE/$jar" ]; then
+        echo "ERROR: missing core jar $jar in $JAR_SOURCE"
+        exit 1
+    fi
+done
+
+mkdir -p $DEPLOY_DIR/jars/extensions
+cp "$JAR_SOURCE"/controlplane.jar "$JAR_SOURCE"/dataplane.jar \
+   "$JAR_SOURCE"/identity-hub.jar "$JAR_SOURCE"/sts.jar $DEPLOY_DIR/jars/
+
+EXT_SOURCE="$JAR_SOURCE/extensions"
+IFS=',' read -ra EXT_LIST <<< "$ENABLED_EXTENSIONS"
+for ext in "${EXT_LIST[@]}"; do
+    case "$ext" in
+        http) ;;
+        s3)   EXT_JAR="data-plane-aws-s3.jar" ;;
+        jdbc) EXT_JAR="data-plane-jdbc.jar" ;;
+        sftp) EXT_JAR="data-plane-sftp.jar" ;;
+        *)    echo "WARNING: unknown extension '$ext', skipped"; continue ;;
+    esac
+    if [ -n "$EXT_JAR" ]; then
+        if [ ! -f "$EXT_SOURCE/$EXT_JAR" ]; then
+            echo "ERROR: missing extension jar $EXT_JAR for '$ext' in $EXT_SOURCE"
+            exit 1
+        fi
+        cp "$EXT_SOURCE/$EXT_JAR" $DEPLOY_DIR/jars/extensions/
+        echo "  + extension: $ext -> $EXT_JAR"
+        unset EXT_JAR
+    fi
+done
 
 # 3. Generate DID key pair
 echo "[3/6] Generating DID key pair..."

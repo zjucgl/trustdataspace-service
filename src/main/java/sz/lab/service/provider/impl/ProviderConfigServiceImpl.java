@@ -42,6 +42,10 @@ public class ProviderConfigServiceImpl
         ProviderConfigEntity entity = new ProviderConfigEntity();
         BeanUtils.copyProperties(dto, entity);
         entity.setStatus("PENDING");
+        if (entity.getEnabledDataplaneExtensions() == null
+                || entity.getEnabledDataplaneExtensions().isEmpty()) {
+            entity.setEnabledDataplaneExtensions("http");
+        }
 
         Integer maxPort = providerConfigMapper.getMaxMgmtPort();
         int basePort = Math.max(maxPort + PORT_STEP, PORT_BASE);
@@ -106,12 +110,12 @@ public class ProviderConfigServiceImpl
             return new OperateResultDTO(false, "Provider不存在", null);
         }
         entity.setProviderLabel(dto.getProviderLabel());
-        entity.setDbHost(dto.getDbHost());
-        entity.setDbPort(dto.getDbPort());
-        entity.setDbName(dto.getDbName());
-        entity.setDbReadonlyUser(dto.getDbReadonlyUser());
-        entity.setDbReadonlyPwd(dto.getDbReadonlyPwd());
         entity.setDeployHost(dto.getDeployHost());
+        entity.setEnabledDataplaneExtensions(
+                dto.getEnabledDataplaneExtensions() == null
+                        || dto.getEnabledDataplaneExtensions().isEmpty()
+                        ? "http"
+                        : dto.getEnabledDataplaneExtensions());
         entity.setRemark(dto.getRemark());
         baseMapper.updateById(entity);
         return new OperateResultDTO(true, "修改成功", null);

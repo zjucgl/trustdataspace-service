@@ -48,23 +48,11 @@ public class ProviderConfigEntity implements Serializable {
     @TableField("sts_port")
     private Integer stsPort;
 
-    @TableField("db_host")
-    private String dbHost;
-
-    @TableField("db_port")
-    private Integer dbPort;
-
-    @TableField("db_name")
-    private String dbName;
-
-    @TableField("db_readonly_user")
-    private String dbReadonlyUser;
-
-    @TableField("db_readonly_pwd")
-    private String dbReadonlyPwd;
-
     @TableField("deploy_host")
     private String deployHost;
+
+    @TableField("enabled_dataplane_extensions")
+    private String enabledDataplaneExtensions;
 
     @TableField("status")
     private String status;

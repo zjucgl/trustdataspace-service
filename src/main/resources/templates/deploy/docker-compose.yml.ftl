@@ -23,12 +23,23 @@ services:
     container_name: ${providerName}-dataplane
     volumes:
       - ./jars/dataplane.jar:/app/dataplane.jar
+      - ./jars/extensions:/app/extensions
       - ./config:/app/config
+# @if:s3
+      - ./jars/extensions/data-plane-aws-s3.jar:/app/extensions/data-plane-aws-s3.jar
+# @endif
+# @if:jdbc
+      - ./jars/extensions/data-plane-jdbc.jar:/app/extensions/data-plane-jdbc.jar
+# @endif
+# @if:sftp
+      - ./jars/extensions/data-plane-sftp.jar:/app/extensions/data-plane-sftp.jar
+# @endif
     ports:
       - "${dataplanePublicPort}:${dataplanePublicPort}"
     environment:
       - EDC_FS_CONFIG=/app/config/dataplane.properties
-    entrypoint: ["java", "-jar", "/app/dataplane.jar"]
+      - EDC_DATAPLANE_EXTENSIONS=${enabledDataplaneExtensions}
+    entrypoint: ["java", "-cp", "/app/dataplane.jar:/app/extensions/*", "-jar", "/app/dataplane.jar"]
     restart: unless-stopped
 
   ${providerName}-identity-hub:
