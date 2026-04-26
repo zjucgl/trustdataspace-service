@@ -82,6 +82,11 @@ aliyun:
     accessKeySecret: ${OSS_ACCESS_KEY_SECRET}
     bucketName: ${OSS_BUCKET_NAME:trustdataspace}
 
+edc:
+  version: ${EDC_VERSION:v0.10.1}
+  jar:
+    base-url: ${EDC_JAR_BASE_URL:https://dataspace2026.oss-cn-hangzhou.aliyuncs.com/edc-jars}
+
 huayichain:
   base-url: ${HUAYICHAIN_BASE_URL:http://121.40.83.239:8101}
   app-key: ${HUAYICHAIN_APP_KEY:A3B7C9D2E5F8G1H4I6J0}

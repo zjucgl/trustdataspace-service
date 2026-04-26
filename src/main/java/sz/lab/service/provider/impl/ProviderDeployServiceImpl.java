@@ -1,5 +1,6 @@
 package sz.lab.service.provider.impl;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import sz.lab.entity.provider.ProviderConfigEntity;
@@ -31,6 +32,12 @@ public class ProviderDeployServiceImpl implements ProviderDeployService {
 
     @Resource
     private ProviderConfigMapper providerConfigMapper;
+
+    @Value("${edc.version:v0.10.1}")
+    private String edcVersion;
+
+    @Value("${edc.jar.base-url:https://dataspace2026.oss-cn-hangzhou.aliyuncs.com/edc-jars}")
+    private String edcJarBaseUrl;
 
     @Override
     public void generateAndDownload(Long providerId, HttpServletResponse response) throws IOException {
@@ -83,6 +90,8 @@ public class ProviderDeployServiceImpl implements ProviderDeployService {
         vars.put("deployHost", config.getDeployHost() != null ? config.getDeployHost() : "127.0.0.1");
         vars.put("callbackUrl", "https://ds.huayihui.art/api");
         vars.put("enabledDataplaneExtensions", String.join(",", extensions));
+        vars.put("edcVersion", edcVersion);
+        vars.put("edcJarBaseUrl", edcJarBaseUrl);
         vars.put("generatedAt", LocalDateTime.now()
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         return vars;

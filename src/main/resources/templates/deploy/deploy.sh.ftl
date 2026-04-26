@@ -16,46 +16,50 @@ echo "=========================================="
 echo "[1/6] Creating directories..."
 mkdir -p $DEPLOY_DIR/{jars,config,credentials}
 
-# 2. Copy JARs (from shared location or download)
-echo "[2/6] Checking JAR files..."
-JAR_SOURCE="/opt/edc/shared/jars"
+# 2. Download JARs from OSS (or local cache)
+echo "[2/6] Fetching JAR files..."
+EDC_VERSION="${edcVersion}"
+JAR_BASE_URL="${EDC_JAR_BASE_URL:-${edcJarBaseUrl}}"
+JAR_CACHE_DIR="${EDC_JAR_CACHE:-/opt/edc/shared/jars/$EDC_VERSION}"
 ENABLED_EXTENSIONS="${enabledDataplaneExtensions}"
-REQUIRED_CORE_JARS=("controlplane.jar" "dataplane.jar" "identity-hub.jar" "sts.jar")
-if [ ! -d "$JAR_SOURCE" ]; then
-    echo "ERROR: Shared JAR directory not found at $JAR_SOURCE"
-    echo "Please copy EDC v0.10.1 core JARs to $JAR_SOURCE"
-    exit 1
-fi
-for jar in "${REQUIRED_CORE_JARS[@]}"; do
-    if [ ! -f "$JAR_SOURCE/$jar" ]; then
-        echo "ERROR: missing core jar $jar in $JAR_SOURCE"
-        exit 1
+
+mkdir -p "$JAR_CACHE_DIR/extensions"
+mkdir -p "$DEPLOY_DIR/jars/extensions"
+
+fetch_jar() {
+    local rel_path="$1"
+    local cache_path="$JAR_CACHE_DIR/$rel_path"
+    local url="$JAR_BASE_URL/$EDC_VERSION/$rel_path"
+    if [ ! -s "$cache_path" ]; then
+        echo "  -> wget $url"
+        if ! wget -q -O "$cache_path.tmp" "$url"; then
+            echo "ERROR: failed to download $url"
+            rm -f "$cache_path.tmp"
+            exit 1
+        fi
+        if [ ! -s "$cache_path.tmp" ]; then
+            echo "ERROR: downloaded $url is empty"
+            rm -f "$cache_path.tmp"
+            exit 1
+        fi
+        mv "$cache_path.tmp" "$cache_path"
     fi
+    cp "$cache_path" "$DEPLOY_DIR/jars/$rel_path"
+}
+
+for jar in controlplane.jar dataplane.jar identity-hub.jar sts.jar; do
+    fetch_jar "$jar"
 done
 
-mkdir -p $DEPLOY_DIR/jars/extensions
-cp "$JAR_SOURCE"/controlplane.jar "$JAR_SOURCE"/dataplane.jar \
-   "$JAR_SOURCE"/identity-hub.jar "$JAR_SOURCE"/sts.jar $DEPLOY_DIR/jars/
-
-EXT_SOURCE="$JAR_SOURCE/extensions"
 IFS=',' read -ra EXT_LIST <<< "$ENABLED_EXTENSIONS"
 for ext in "${EXT_LIST[@]}"; do
     case "$ext" in
         http) ;;
-        s3)   EXT_JAR="data-plane-aws-s3.jar" ;;
-        jdbc) EXT_JAR="data-plane-jdbc.jar" ;;
-        sftp) EXT_JAR="data-plane-sftp.jar" ;;
-        *)    echo "WARNING: unknown extension '$ext', skipped"; continue ;;
+        s3)   fetch_jar "extensions/data-plane-aws-s3.jar" && echo "  + extension: $ext" ;;
+        jdbc) fetch_jar "extensions/data-plane-jdbc.jar"   && echo "  + extension: $ext" ;;
+        sftp) fetch_jar "extensions/data-plane-sftp.jar"   && echo "  + extension: $ext" ;;
+        *)    echo "WARNING: unknown extension '$ext', skipped" ;;
     esac
-    if [ -n "$EXT_JAR" ]; then
-        if [ ! -f "$EXT_SOURCE/$EXT_JAR" ]; then
-            echo "ERROR: missing extension jar $EXT_JAR for '$ext' in $EXT_SOURCE"
-            exit 1
-        fi
-        cp "$EXT_SOURCE/$EXT_JAR" $DEPLOY_DIR/jars/extensions/
-        echo "  + extension: $ext -> $EXT_JAR"
-        unset EXT_JAR
-    fi
 done
 
 # 3. Generate DID key pair
