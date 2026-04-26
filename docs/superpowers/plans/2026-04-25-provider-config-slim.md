@@ -26,12 +26,12 @@
 ### 集成
 
 - [x] **T10**: 后端 `mvn clean compile` + 前端 `pnpm build`（含 vue-tsc 类型检查），均通过
-- [ ] **T11**: 后端 / 前端各自 commit + push origin/main
-- [ ] **T12**: 生产部署（RDS ALTER → 重打 JAR → scp → compose rebuild → rsync dist → restart nginx）
-- [ ] **T13**: 生产验证（新建 Provider 勾选 http+s3，下载部署脚本验证 docker-compose 内容）
+- [x] **T11**: 后端（db9e46c）/ 前端（1114265）各自 commit + push origin/main
+- [x] **T12**: 生产部署（RDS ALTER → 重打 JAR → scp → compose rebuild → rsync dist → restart nginx）
+- [x] **T13**: 生产验证 — 三种组合（http only / http+s3+jdbc / http+sftp）下载脚本均正确条件挂载
 
-### 延后（不在本次 scope）
+### 延后任务后续处理
 
-- ~~Asset 多源表单（issue #14 中 Task 4，建议单独 issue）~~
-- ~~vault 集成（issue #14 中 Task 3，短期内网明文）~~
-- ~~迁移现有 providerQA（issue #14 中 Task 5，条件性，T13 后视情况决定）~~
+- [x] **Asset 多源表单**（commit ddf79fc）— `src/views/basic/asset/form.vue` 改为按 sourceType (HttpData/AmazonS3/JdbcDataAddress) 切换字段组；`index.vue.buildDataAddress()` 按类型构造 EDC dataAddress；HttpData 保持原 MinIO 上传逻辑做向后兼容
+- [x] **迁移 providerQA**（无操作）— providerQA 的 EDC 在外部服务器 `211.91.61.25:29391`，不归本服务管理；本服务的 `provider_config` 仅 SmartPort 一行，db_* 为空，无数据需迁移
+- [ ] **vault 集成**（**阻塞**）— 依赖外部基础设施（HashiCorp Vault 或阿里云 KMS 的 endpoint + token + 凭证路径），需用户先提供。实现位置：Asset dataAddress 的密码/AK/SK 字段，运行时由 EDC 的 VaultResolver 解析 `vault:` 前缀引用
