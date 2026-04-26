@@ -30,13 +30,20 @@ oss://dataspace2026/edc-jars/
 └── v0.11.0/
 ```
 
-公网 URL 模板：
+**访问方式：OSS pre-signed URL**
+
+bucket `dataspace2026` 启用了"阻止公共访问"，无法直接 `https://...path` 公开访问。平台后端在生成部署 zip 时为每个 jar 路径用 AK/SK 签发一个 24h 有效的下载 URL，嵌入到 deploy.sh 里的 `wget` 命令。
+
+URL 形式（每次生成 zip 时签）：
 
 ```
-https://dataspace2026.oss-cn-hangzhou.aliyuncs.com/edc-jars/<version>/<filename>
+https://dataspace2026.oss-cn-hangzhou.aliyuncs.com/edc-jars/<version>/<filename>?Expires=...&OSSAccessKeyId=...&Signature=...
 ```
 
-OSS bucket 必须开启**对 `edc-jars/` 路径的公共读**（不需要鉴权 wget 即可）。
+含义：
+- 不依赖 OSS bucket policy / object ACL
+- zip 下载后 24h 内可执行 deploy.sh；超时需重新下载 zip
+- jar 内容完全私有，外部无法枚举或匿名访问
 
 ---
 
@@ -118,15 +125,17 @@ cd ../jars-v0.10.1
 ossutil cp -r . oss://dataspace2026/edc-jars/v0.10.1/ --include "*.jar"
 ```
 
-设置公共读权限（针对 `edc-jars/` 前缀）：
-
-阿里云 OSS 控制台 → bucket dataspace2026 → 权限管理 → Bucket 授权策略 → 新增 ALLOW * 对 `dataspace2026/edc-jars/*` 的 GetObject。
+**不需要**额外设置 bucket policy 或 object ACL — 平台后端用 AK/SK 签 URL 给客户端访问。
 
 ### 2.5 验证可下载
 
+直接 curl object URL 会 403（bucket 私有）。需要通过平台生成 deploy zip，里面的 deploy.sh 才有签名 URL：
+
 ```bash
-curl -I https://dataspace2026.oss-cn-hangzhou.aliyuncs.com/edc-jars/v0.10.1/controlplane.jar
-# 期望: HTTP 200, Content-Type: application/java-archive, Content-Length 几十 MB
+curl -s -o /tmp/d.zip "https://ds.huayihui.art/api/provider/deploy-script/<id>"
+unzip -o /tmp/d.zip -d /tmp/d
+# deploy.sh 第 2 步 fetch_jar 的 URL 参数都是带 Signature 的；可以手工 curl 验证
+grep "fetch_jar.*Signature" /tmp/d/deploy.sh | head -1
 ```
 
 ---
@@ -136,25 +145,26 @@ curl -I https://dataspace2026.oss-cn-hangzhou.aliyuncs.com/edc-jars/v0.10.1/cont
 `templates/deploy/deploy.sh.ftl` 渲染后的 deploy.sh 在 `[2/6] Fetching JAR files` 步骤会执行：
 
 ```bash
-JAR_BASE_URL="${EDC_JAR_BASE_URL:-https://dataspace2026.oss-cn-hangzhou.aliyuncs.com/edc-jars}"
-JAR_CACHE_DIR="${EDC_JAR_CACHE:-/opt/edc/shared/jars/v0.10.1}"
-# 对每个所需 jar：
-#   1) 看本地缓存是否已有；没有则 wget
-#   2) 从缓存复制到 $DEPLOY_DIR/jars/
+EDC_VERSION="v0.10.1"
+JAR_CACHE_DIR="${EDC_JAR_CACHE:-/opt/edc/shared/jars/$EDC_VERSION}"
+
+fetch_jar "controlplane.jar" "<24h-signed-url>"
+fetch_jar "dataplane.jar"    "<24h-signed-url>"
+fetch_jar "identity-hub.jar" "<24h-signed-url>"
+fetch_jar "sts.jar"          "<24h-signed-url>"
+# 启用了 s3 时 fetch_jar extensions/data-plane-aws-s3.jar
+# 启用了 jdbc / sftp 同理
 ```
+
+每个 URL 由平台后端 `OssUtils.createPublicSignedUrl()` 用 AK/SK 签发，24h 有效。zip 过期需要重新从平台下载。
 
 ### 环境变量覆盖
 
 | 变量 | 用途 | 默认 |
 |------|------|------|
-| `EDC_JAR_BASE_URL` | 改用其他 OSS / 私有镜像源 | `https://dataspace2026.oss-cn-hangzhou.aliyuncs.com/edc-jars` |
 | `EDC_JAR_CACHE` | 改本地缓存目录 | `/opt/edc/shared/jars/<version>` |
 
-示例（用本地局域网镜像）：
-
-```bash
-EDC_JAR_BASE_URL=http://192.168.1.10/edc-jars bash deploy.sh
-```
+注：bucket / 路径 prefix 等绑定到平台 OSS 配置，不在客户端覆盖。
 
 ### 后端配置项
 
@@ -164,10 +174,10 @@ EDC_JAR_BASE_URL=http://192.168.1.10/edc-jars bash deploy.sh
 edc:
   version: ${EDC_VERSION:v0.10.1}
   jar:
-    base-url: ${EDC_JAR_BASE_URL:https://dataspace2026.oss-cn-hangzhou.aliyuncs.com/edc-jars}
+    oss-prefix: ${EDC_JAR_OSS_PREFIX:edc-jars}
 ```
 
-通过 `.env` 注入到 Spring（`docker-compose.yml` `environment` 段）即可全平台切换默认 URL。
+OSS bucket 名沿用 `aliyun.oss.bucketName`（dataspace2026），凭证沿用 `aliyun.oss.access-key-id` / `access-key-secret`。`OssConfig` 单独构造一个 `ossPublicSigningClient` bean 用 **公网 endpoint** 签 URL（业务上传仍走 internal endpoint）。
 
 ---
 

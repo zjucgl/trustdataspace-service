@@ -29,8 +29,18 @@ public class OssUtils {
     @Resource
     private OSS ossClient;
 
+    @Resource(name = "ossPublicSigningClient")
+    private OSS ossPublicSigningClient;
+
     @Value("${aliyun.oss.bucketName}")
     private String bucketName;
+
+    public String createPublicSignedUrl(String objectKey, long validitySeconds) {
+        Date expiration = new Date(System.currentTimeMillis() + validitySeconds * 1000L);
+        return ossPublicSigningClient
+                .generatePresignedUrl(bucketName, objectKey, expiration)
+                .toString();
+    }
 
     public List<String> upload(MultipartFile[] multipartFile) {
         List<String> names = new ArrayList<>(multipartFile.length);

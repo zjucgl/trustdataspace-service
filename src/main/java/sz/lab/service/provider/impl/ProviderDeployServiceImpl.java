@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import sz.lab.entity.provider.ProviderConfigEntity;
 import sz.lab.mapper.provider.ProviderConfigMapper;
 import sz.lab.service.provider.ProviderDeployService;
+import sz.lab.utils.OssUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
@@ -30,14 +31,19 @@ public class ProviderDeployServiceImpl implements ProviderDeployService {
     private static final Pattern CONDITIONAL_BLOCK = Pattern.compile(
             "(?s)# @if:(\\w+)\\s*\\r?\\n(.*?)# @endif\\s*\\r?\\n");
 
+    private static final long JAR_URL_VALIDITY_SECONDS = 24 * 60 * 60L;
+
     @Resource
     private ProviderConfigMapper providerConfigMapper;
+
+    @Resource
+    private OssUtils ossUtils;
 
     @Value("${edc.version:v0.10.1}")
     private String edcVersion;
 
-    @Value("${edc.jar.base-url:https://dataspace2026.oss-cn-hangzhou.aliyuncs.com/edc-jars}")
-    private String edcJarBaseUrl;
+    @Value("${edc.jar.oss-prefix:edc-jars}")
+    private String edcJarOssPrefix;
 
     @Override
     public void generateAndDownload(Long providerId, HttpServletResponse response) throws IOException {
@@ -91,7 +97,22 @@ public class ProviderDeployServiceImpl implements ProviderDeployService {
         vars.put("callbackUrl", "https://ds.huayihui.art/api");
         vars.put("enabledDataplaneExtensions", String.join(",", extensions));
         vars.put("edcVersion", edcVersion);
-        vars.put("edcJarBaseUrl", edcJarBaseUrl);
+        vars.put("controlplaneJarUrl", signJarUrl("controlplane.jar"));
+        vars.put("dataplaneJarUrl", signJarUrl("dataplane.jar"));
+        vars.put("identityHubJarUrl", signJarUrl("identity-hub.jar"));
+        vars.put("stsJarUrl", signJarUrl("sts.jar"));
+        vars.put("s3ExtensionJarUrl",
+                extensions.contains("s3")
+                        ? signJarUrl("extensions/data-plane-aws-s3.jar")
+                        : "");
+        vars.put("jdbcExtensionJarUrl",
+                extensions.contains("jdbc")
+                        ? signJarUrl("extensions/data-plane-jdbc.jar")
+                        : "");
+        vars.put("sftpExtensionJarUrl",
+                extensions.contains("sftp")
+                        ? signJarUrl("extensions/data-plane-sftp.jar")
+                        : "");
         vars.put("generatedAt", LocalDateTime.now()
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         return vars;
@@ -112,6 +133,11 @@ public class ProviderDeployServiceImpl implements ProviderDeployService {
         zos.putNextEntry(new ZipEntry(entryName));
         zos.write(content.getBytes(StandardCharsets.UTF_8));
         zos.closeEntry();
+    }
+
+    private String signJarUrl(String relativePath) {
+        String objectKey = edcJarOssPrefix + "/" + edcVersion + "/" + relativePath;
+        return ossUtils.createPublicSignedUrl(objectKey, JAR_URL_VALIDITY_SECONDS);
     }
 
     private String applyConditionals(String content, Set<String> extensions) {

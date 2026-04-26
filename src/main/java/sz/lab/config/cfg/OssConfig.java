@@ -20,4 +20,10 @@ public class OssConfig {
     public OSS ossClient() {
         return new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
     }
+
+    @Bean(name = "ossPublicSigningClient")
+    public OSS ossPublicSigningClient() {
+        String publicEndpoint = endpoint.replace("-internal.aliyuncs.com", ".aliyuncs.com");
+        return new OSSClientBuilder().build(publicEndpoint, accessKeyId, accessKeySecret);
+    }
 }

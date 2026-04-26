@@ -16,29 +16,31 @@ echo "=========================================="
 echo "[1/6] Creating directories..."
 mkdir -p $DEPLOY_DIR/{jars,config,credentials}
 
-# 2. Download JARs from OSS (or local cache)
+# 2. Download JARs via OSS pre-signed URLs (valid 24h from generation time)
 echo "[2/6] Fetching JAR files..."
 EDC_VERSION="${edcVersion}"
-JAR_BASE_URL="${EDC_JAR_BASE_URL:-${edcJarBaseUrl}}"
 JAR_CACHE_DIR="${EDC_JAR_CACHE:-/opt/edc/shared/jars/$EDC_VERSION}"
-ENABLED_EXTENSIONS="${enabledDataplaneExtensions}"
 
 mkdir -p "$JAR_CACHE_DIR/extensions"
 mkdir -p "$DEPLOY_DIR/jars/extensions"
 
 fetch_jar() {
     local rel_path="$1"
+    local url="$2"
     local cache_path="$JAR_CACHE_DIR/$rel_path"
-    local url="$JAR_BASE_URL/$EDC_VERSION/$rel_path"
+    if [ -z "$url" ]; then
+        echo "ERROR: empty URL for $rel_path"
+        exit 1
+    fi
     if [ ! -s "$cache_path" ]; then
-        echo "  -> wget $url"
+        echo "  -> $rel_path"
         if ! wget -q -O "$cache_path.tmp" "$url"; then
-            echo "ERROR: failed to download $url"
+            echo "ERROR: failed to download $rel_path (URL may have expired; re-download deploy.sh)"
             rm -f "$cache_path.tmp"
             exit 1
         fi
         if [ ! -s "$cache_path.tmp" ]; then
-            echo "ERROR: downloaded $url is empty"
+            echo "ERROR: $rel_path downloaded empty (URL may have expired)"
             rm -f "$cache_path.tmp"
             exit 1
         fi
@@ -47,20 +49,23 @@ fetch_jar() {
     cp "$cache_path" "$DEPLOY_DIR/jars/$rel_path"
 }
 
-for jar in controlplane.jar dataplane.jar identity-hub.jar sts.jar; do
-    fetch_jar "$jar"
-done
+fetch_jar "controlplane.jar" "${controlplaneJarUrl}"
+fetch_jar "dataplane.jar"    "${dataplaneJarUrl}"
+fetch_jar "identity-hub.jar" "${identityHubJarUrl}"
+fetch_jar "sts.jar"          "${stsJarUrl}"
 
-IFS=',' read -ra EXT_LIST <<< "$ENABLED_EXTENSIONS"
-for ext in "${EXT_LIST[@]}"; do
-    case "$ext" in
-        http) ;;
-        s3)   fetch_jar "extensions/data-plane-aws-s3.jar" && echo "  + extension: $ext" ;;
-        jdbc) fetch_jar "extensions/data-plane-jdbc.jar"   && echo "  + extension: $ext" ;;
-        sftp) fetch_jar "extensions/data-plane-sftp.jar"   && echo "  + extension: $ext" ;;
-        *)    echo "WARNING: unknown extension '$ext', skipped" ;;
-    esac
-done
+# @if:s3
+fetch_jar "extensions/data-plane-aws-s3.jar" "${s3ExtensionJarUrl}"
+echo "  + extension: s3"
+# @endif
+# @if:jdbc
+fetch_jar "extensions/data-plane-jdbc.jar" "${jdbcExtensionJarUrl}"
+echo "  + extension: jdbc"
+# @endif
+# @if:sftp
+fetch_jar "extensions/data-plane-sftp.jar" "${sftpExtensionJarUrl}"
+echo "  + extension: sftp"
+# @endif
 
 # 3. Generate DID key pair
 echo "[3/6] Generating DID key pair..."
