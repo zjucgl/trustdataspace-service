@@ -14,8 +14,8 @@
 - [x] **T4** docker-compose.yml.ftl 用 Tractus-X 镜像替代裸 jar
 - [x] **T5** deploy.sh.ftl 简化（去掉 fetch_jar 整段）
 - [x] **T6** 文档：jar-distribution.md → deployment.md 重写
-- [ ] **T7** 后端编译 + 前端构建 + 提交推送
-- [ ] **T8** 部署到生产 + 验证 deploy zip 内容
+- [x] **T7** 后端编译 + 前端构建 + 提交推送（commit 7030b2f）
+- [x] **T8** 部署到生产 + 验证 deploy zip 内容（image=tractusx/edc-runtime-memory:0.12.0，5 端口正确）
 - [ ] **T9** 端到端验证：干净测试机跑 deploy.sh，4 容器 healthy
 - [ ] **T10** 多 Provider 隔离验证
 

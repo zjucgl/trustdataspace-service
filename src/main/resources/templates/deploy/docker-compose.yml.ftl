@@ -14,12 +14,13 @@ services:
       - "${controlplanePublicPort}:${controlplanePublicPort}"
       - "${dataplanePublicPort}:${dataplanePublicPort}"
       - "${identityHubPort}:${identityHubPort}"
+      - "${stsPort}:${stsPort}"
     environment:
       EDC_PARTICIPANT_ID: "${participantDid}"
       EDC_IAM_ISSUER_ID: "${participantDid}"
       EDC_PARTICIPANT_CONTEXT_ID: "${participantContextId}"
       TRACTUSX_EDC_PARTICIPANT_BPN: "${participantBpn}"
-      WEB_HTTP_PORT: "${controlplaneMgmtPort}"
+      WEB_HTTP_PORT: "${stsPort}"
       WEB_HTTP_PATH: "/api"
       WEB_HTTP_MANAGEMENT_PORT: "${controlplaneMgmtPort}"
       WEB_HTTP_MANAGEMENT_PATH: "/management"
@@ -42,7 +43,10 @@ services:
       EDC_IAM_STS_OAUTH_CLIENT_ID: "stub-client"
       EDC_IAM_STS_OAUTH_CLIENT_SECRET_ALIAS: "sts-client-secret"
       TX_EDC_IAM_STS_DIM_URL: "https://stub-dim.local"
-      TX_EDC_VAULT_SECRETS: "sts-client-secret:stub-secret-value"
+      TX_EDC_IAM_IATP_BDRS_SERVER_URL: "https://stub-bdrs.local/api/directory"
+      EDC_TRANSFER_PROXY_TOKEN_SIGNER_PRIVATEKEY_ALIAS: "token-signer-key"
+      EDC_TRANSFER_PROXY_TOKEN_VERIFIER_PUBLICKEY_ALIAS: "token-signer-key"
+      TX_EDC_VAULT_SECRETS: "sts-client-secret:stub-secret-value;token-signer-key:stub-token-key"
       TX_EDC_DPF_CONSUMER_PROXY_AUTH_APIKEY: "${managementAuthKey}"
 # @if:s3
       EDC_DATAPLANE_AWS_ENDPOINT_OVERRIDE: ""
@@ -50,7 +54,7 @@ services:
       EDC_DATAPLANE_AWS_SECRET_ACCESS_KEY: ""
 # @endif
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:${controlplaneMgmtPort}/api/check/health || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:${stsPort}/api/check/startup || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 30
