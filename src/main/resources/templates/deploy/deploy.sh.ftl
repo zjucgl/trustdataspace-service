@@ -23,10 +23,21 @@ if [ ! -s "$DEPLOY_DIR/credentials/private-key.pem" ]; then
     openssl ec -in "$DEPLOY_DIR/credentials/private-key.pem" -pubout -out "$DEPLOY_DIR/credentials/public-key.pem"
 fi
 
-echo "[3/5] Setting up docker-compose..."
+echo "[3/5] Building did.json from public key..."
+PUB_HEX=$(openssl pkey -in "$DEPLOY_DIR/credentials/public-key.pem" -pubin -text -noout 2>&1 \
+    | awk '/^pub:/,/^ASN1 OID:/' | grep -E '^\s+[0-9a-f]' | tr -d ': \n')
+if [ "${#PUB_HEX}" -ne 130 ] || [ "${PUB_HEX:0:2}" != "04" ]; then
+    echo "ERROR: unexpected EC public key format (len=${#PUB_HEX}, prefix=${PUB_HEX:0:2})"
+    exit 1
+fi
+b64url() { printf '%s' "$1" | xxd -r -p | base64 -w0 | tr '+/' '-_' | tr -d '='; }
+JWK_X=$(b64url "${PUB_HEX:2:64}")
+JWK_Y=$(b64url "${PUB_HEX:66:64}")
+sed -e "s|{{X}}|$JWK_X|g" -e "s|{{Y}}|$JWK_Y|g" did.json.template > "$DEPLOY_DIR/did.json"
 cp docker-compose.yml "$DEPLOY_DIR/"
 
 echo "[4/5] Pulling image and starting container..."
+echo "  did.json published at /opt/edc/$PROVIDER_NAME/did.json"
 cd "$DEPLOY_DIR"
 docker compose pull
 docker compose up -d

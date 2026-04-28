@@ -1,0 +1,34 @@
+{
+  "@context": [
+    "https://www.w3.org/ns/did/v1",
+    "https://w3id.org/security/suites/jws-2020/v1"
+  ],
+  "id": "${participantDid}",
+  "verificationMethod": [
+    {
+      "id": "${participantDid}#key-1",
+      "type": "JsonWebKey2020",
+      "controller": "${participantDid}",
+      "publicKeyJwk": {
+        "kty": "EC",
+        "crv": "P-256",
+        "x": "{{X}}",
+        "y": "{{Y}}"
+      }
+    }
+  ],
+  "authentication": ["${participantDid}#key-1"],
+  "assertionMethod": ["${participantDid}#key-1"],
+  "service": [
+    {
+      "id": "${participantDid}#dsp",
+      "type": "ProtocolEndpoint",
+      "serviceEndpoint": "http://${deployHost}:${controlplaneProtocolPort}/api/v1/dsp"
+    },
+    {
+      "id": "${participantDid}#management",
+      "type": "ManagementApi",
+      "serviceEndpoint": "http://${deployHost}:${controlplaneMgmtPort}/management"
+    }
+  ]
+}

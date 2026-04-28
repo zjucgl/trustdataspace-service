@@ -1,6 +1,13 @@
 # Nginx proxy config for ${providerName}
 # Add this to your main nginx.conf server block
 
+# ${providerName} - DID document (did:web resolution)
+location = /${providerName}/did.json {
+    alias /opt/edc/${providerName}/did.json;
+    default_type application/did+json;
+    add_header Cache-Control "public, max-age=300";
+}
+
 # ${providerName} - Controlplane Management API
 location /${providerName}/management/ {
     proxy_pass http://${deployHost}:${controlplaneMgmtPort}/management/;

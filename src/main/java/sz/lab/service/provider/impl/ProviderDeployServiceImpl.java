@@ -59,6 +59,8 @@ public class ProviderDeployServiceImpl implements ProviderDeployService {
                     "deploy.sh", vars, extensions);
             addTemplateToZip(zos, "templates/deploy/nginx-provider.conf.ftl",
                     "nginx-provider.conf", vars, extensions);
+            addTemplateToZip(zos, "templates/deploy/did.json.template",
+                    "did.json.template", vars, extensions);
         }
     }
 
