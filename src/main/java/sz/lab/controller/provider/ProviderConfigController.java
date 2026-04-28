@@ -5,8 +5,10 @@ import org.springframework.web.bind.annotation.*;
 import sz.lab.controller.BaseController;
 import sz.lab.dto.provider.ProviderConfigDTO;
 import sz.lab.dto.system.OperateResultDTO;
+import sz.lab.entity.provider.ProviderConfigEntity;
 import sz.lab.service.provider.ProviderConfigService;
 import sz.lab.service.provider.ProviderDeployService;
+import sz.lab.service.provider.ProviderHealthService;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
@@ -22,6 +24,9 @@ public class ProviderConfigController extends BaseController {
 
     @Resource
     private ProviderDeployService providerDeployService;
+
+    @Resource
+    private ProviderHealthService providerHealthService;
 
     @PostMapping("/add")
     public OperateResultDTO add(@RequestBody ProviderConfigDTO input) {
@@ -57,5 +62,18 @@ public class ProviderConfigController extends BaseController {
     public void downloadDeployScript(@PathVariable("id") Long id,
                                      HttpServletResponse response) throws IOException {
         providerDeployService.generateAndDownload(id, response);
+    }
+
+    @GetMapping("/healthCheck/{id}")
+    public OperateResultDTO healthCheck(@PathVariable("id") Long id) {
+        OperateResultDTO detail = providerConfigService.detail(id);
+        if (!detail.isSuccess() || detail.getResult() == null) {
+            return detail;
+        }
+        ProviderConfigEntity entity = providerConfigService.getById(id);
+        if (entity == null) {
+            return new OperateResultDTO(false, "Provider不存在", null);
+        }
+        return new OperateResultDTO(true, "检测完成", providerHealthService.check(entity));
     }
 }
