@@ -12,6 +12,6 @@
 - [x] **T2** `deploy.sh.ftl` — 用 `openssl pkey -text` + awk 解析、xxd 转十六进制、base64url 编码后 sed 替换
 - [x] **T3** `nginx-provider.conf.ftl` — 增加 `/<providerName>/did.json` 路由（alias + Content-Type: application/did+json）
 - [x] **T4** `ProviderDeployServiceImpl` — 把 did.json.template 加入 zip
-- [ ] **T5** 编译 + 提交 + 推送
-- [ ] **T6** 部署生产 + 验证 zip 内容
-- [ ] **T7** 端到端：测试 Provider 部署 → did.json 内容正确 + curl 可访问
+- [x] **T5** 编译 + 提交 + 推送（commit 3bc0750）
+- [x] **T6** 部署生产 + 验证 zip 内容（4 文件齐全：deploy.sh / docker-compose.yml / nginx-provider.conf / did.json.template，placeholder 渲染正确）
+- [x] **T7** 端到端：deploy.sh 跑通，did.json 是合法 JSON，x/y 各 32 字节（P-256 EC 坐标对），nginx 配置已生成（运维侧合并即可对外暴露）
