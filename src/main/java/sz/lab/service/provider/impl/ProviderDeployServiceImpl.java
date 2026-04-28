@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 import sz.lab.entity.provider.ProviderConfigEntity;
 import sz.lab.mapper.provider.ProviderConfigMapper;
 import sz.lab.service.provider.ProviderDeployService;
-import sz.lab.utils.OssUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
@@ -20,6 +19,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -31,19 +31,11 @@ public class ProviderDeployServiceImpl implements ProviderDeployService {
     private static final Pattern CONDITIONAL_BLOCK = Pattern.compile(
             "(?s)# @if:(\\w+)\\s*\\r?\\n(.*?)# @endif\\s*\\r?\\n");
 
-    private static final long JAR_URL_VALIDITY_SECONDS = 24 * 60 * 60L;
-
     @Resource
     private ProviderConfigMapper providerConfigMapper;
 
-    @Resource
-    private OssUtils ossUtils;
-
-    @Value("${edc.version:v0.10.1}")
-    private String edcVersion;
-
-    @Value("${edc.jar.oss-prefix:edc-jars}")
-    private String edcJarOssPrefix;
+    @Value("${edc.tractusx.runtime-image:tractusx/edc-runtime-memory:0.12.0}")
+    private String tractusxRuntimeImage;
 
     @Override
     public void generateAndDownload(Long providerId, HttpServletResponse response) throws IOException {
@@ -85,7 +77,9 @@ public class ProviderDeployServiceImpl implements ProviderDeployService {
 
     private Map<String, String> buildVars(ProviderConfigEntity config, Set<String> extensions) {
         Map<String, String> vars = new HashMap<>();
-        vars.put("providerName", config.getProviderName());
+        String providerName = config.getProviderName();
+        String deployHost = config.getDeployHost() != null ? config.getDeployHost() : "127.0.0.1";
+        vars.put("providerName", providerName);
         vars.put("providerId", String.valueOf(config.getId()));
         vars.put("controlplaneMgmtPort", String.valueOf(config.getControlplaneMgmtPort()));
         vars.put("controlplaneProtocolPort", String.valueOf(config.getControlplaneProtocolPort()));
@@ -93,26 +87,17 @@ public class ProviderDeployServiceImpl implements ProviderDeployService {
         vars.put("dataplanePublicPort", String.valueOf(config.getDataplanePublicPort()));
         vars.put("identityHubPort", String.valueOf(config.getIdentityHubPort()));
         vars.put("stsPort", String.valueOf(config.getStsPort()));
-        vars.put("deployHost", config.getDeployHost() != null ? config.getDeployHost() : "127.0.0.1");
+        vars.put("deployHost", deployHost);
         vars.put("callbackUrl", "https://ds.huayihui.art/api");
         vars.put("enabledDataplaneExtensions", String.join(",", extensions));
-        vars.put("edcVersion", edcVersion);
-        vars.put("controlplaneJarUrl", signJarUrl("controlplane.jar"));
-        vars.put("dataplaneJarUrl", signJarUrl("dataplane.jar"));
-        vars.put("identityHubJarUrl", signJarUrl("identity-hub.jar"));
-        vars.put("stsJarUrl", signJarUrl("sts.jar"));
-        vars.put("s3ExtensionJarUrl",
-                extensions.contains("s3")
-                        ? signJarUrl("extensions/data-plane-aws-s3.jar")
-                        : "");
-        vars.put("jdbcExtensionJarUrl",
-                extensions.contains("jdbc")
-                        ? signJarUrl("extensions/data-plane-jdbc.jar")
-                        : "");
-        vars.put("sftpExtensionJarUrl",
-                extensions.contains("sftp")
-                        ? signJarUrl("extensions/data-plane-sftp.jar")
-                        : "");
+        vars.put("tractusxRuntimeImage", tractusxRuntimeImage);
+        vars.put("participantDid",
+                config.getParticipantId() != null && !config.getParticipantId().isEmpty()
+                        ? config.getParticipantId()
+                        : "did:web:" + deployHost.replace(":", "%3A") + ":" + providerName);
+        vars.put("participantContextId", UUID.randomUUID().toString());
+        vars.put("participantBpn", "BPN" + providerName.toUpperCase());
+        vars.put("managementAuthKey", "password");
         vars.put("generatedAt", LocalDateTime.now()
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         return vars;
@@ -133,11 +118,6 @@ public class ProviderDeployServiceImpl implements ProviderDeployService {
         zos.putNextEntry(new ZipEntry(entryName));
         zos.write(content.getBytes(StandardCharsets.UTF_8));
         zos.closeEntry();
-    }
-
-    private String signJarUrl(String relativePath) {
-        String objectKey = edcJarOssPrefix + "/" + edcVersion + "/" + relativePath;
-        return ossUtils.createPublicSignedUrl(objectKey, JAR_URL_VALIDITY_SECONDS);
     }
 
     private String applyConditionals(String content, Set<String> extensions) {
