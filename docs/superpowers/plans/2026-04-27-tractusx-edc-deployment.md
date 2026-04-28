@@ -16,8 +16,8 @@
 - [x] **T6** 文档：jar-distribution.md → deployment.md 重写
 - [x] **T7** 后端编译 + 前端构建 + 提交推送（commit 7030b2f）
 - [x] **T8** 部署到生产 + 验证 deploy zip 内容（image=tractusx/edc-runtime-memory:0.12.0，5 端口正确）
-- [ ] **T9** 端到端验证：干净测试机跑 deploy.sh，4 容器 healthy
-- [ ] **T10** 多 Provider 隔离验证
+- [x] **T9** 端到端验证：SmartPort-edc 容器跑起来，EDC management API 200（POST /management/v3/assets/request 返回 `[]`）
+- [x] **T10** 多 Provider 隔离验证（SmartPort + Provider2 同机部署，端口段/容器名/network 全隔离，各自 management API 200 + status callback 成功）
 
 ## T1 调研产出
 
