@@ -12,5 +12,5 @@
 - [x] **T2** `ProviderConfigController` add `GET /provider/healthCheck/{id}`
 - [x] **T3** 前端 API + types（HealthCheckItem / HealthCheckResult，无 any/unknown）
 - [x] **T4** 前端详情对话框：健康自检 section + 4 项结果表格 + 立即检测按钮（el-table 显示项/OK/HTTP/耗时/错误）
-- [ ] **T5** 编译 + 提交 + 推送
-- [ ] **T6** 部署 + 验证 SmartPort
+- [x] **T5** 编译 + 提交 + 推送（后端 `0032aea`、前端 `d914efe`）
+- [x] **T6** 部署 + 验证 SmartPort（startup ✅ 200/44ms, management ✅ 200/764ms, dsp ✅ 404/143ms, did ❌ 301 — 与预期完全一致：DID 路由仅在 Provider 自己 nginx 上）
